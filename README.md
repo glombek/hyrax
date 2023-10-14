@@ -1,6 +1,4 @@
-
-
-![A vector image of a screaming hyrax.](./screaming-hyrax.svg)
+<img src="./screaming-hyrax.svg" alt="A vector image of a screaming hyrax." align="right" width="30%" />
 
 # hyrax
 
@@ -13,6 +11,8 @@
 The project aims to provide configuration options for **ASP.NET Core** and the **Umbraco CMS** (~12+) to expose **ActivityPub** endpoints and **RSS** feeds to expose blog content to RSS readers and the fediverse.
 
 [Hyraxes](https://en.wikipedia.org/wiki/Hyrax) or *dassies*, although similar in appearance a marmot or particularly angry rodent, are actually part of the [paenungulata](https://en.wikipedia.org/wiki/Paenungulata) clade along with elephants and **mastodons**.
+
+<br clear="right"/>
 
 ## Installation
 
