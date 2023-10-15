@@ -1,12 +1,12 @@
 using Umbraco.Cms.Core.Manifest;
 
-namespace Umbraco.Community.hyrax
+namespace hyrax.Umbraco
 {
-    internal class hyraxManifestFilter : IManifestFilter
+    internal class HyraxManifestFilter : IManifestFilter
     {
         public void Filter(List<PackageManifest> manifests)
         {
-            var assembly = typeof(hyraxManifestFilter).Assembly;
+            var assembly = typeof(HyraxManifestFilter).Assembly;
 
             manifests.Add(new PackageManifest
             {

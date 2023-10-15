@@ -1,13 +1,13 @@
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 
-namespace Umbraco.Community.hyrax
+namespace hyrax.Umbraco
 {
     internal class hyraxComposer : IComposer
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.ManifestFilters().Append<hyraxManifestFilter>();
+            builder.ManifestFilters().Append<HyraxManifestFilter>();
         }
     }
 }

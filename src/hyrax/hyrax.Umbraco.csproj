@@ -5,12 +5,12 @@
     <Nullable>enable</Nullable>
     <StaticWebAssetBasePath>App_Plugins</StaticWebAssetBasePath>
     <ContentTargetFolders>.</ContentTargetFolders>
-    <Product>Umbraco.Community.hyrax</Product>
-    <PackageId>Umbraco.Community.hyrax</PackageId>
+    <Product>Hyrax.Umbraco</Product>
+    <PackageId>Hyrax.Umbraco</PackageId>
     <Title>hyrax</Title>
     <Description>...</Description>
     <PackageTags>umbraco;umbraco-marketplace</PackageTags>
-    <RootNamespace>Umbraco.Community.hyrax</RootNamespace>
+    <RootNamespace>Hyrax.Umbraco</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Version>0.1.0</Version>
     <Authors>Joe Glombek</Authors>
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\hyrax.Core\hyrax.Core.csproj" />
+    <ProjectReference Include="..\hyrax.Core\Hyrax.Core.csproj" />
   </ItemGroup>
 
 </Project>
