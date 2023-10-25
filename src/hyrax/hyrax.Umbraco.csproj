@@ -17,7 +17,7 @@
     <Copyright>$([System.DateTime]::UtcNow.ToString(`yyyy`)) © Joe Glombek</Copyright>
     <PackageProjectUrl>https://github.com/glombek/hyrax</PackageProjectUrl>
     <RepositoryUrl>https://github.com/glombek/hyrax</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!--<PackageReadmeFile>../../README.md</PackageReadmeFile>-->
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
@@ -27,12 +27,12 @@
     <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="10.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Include="..\..\README_nuget.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <ProjectReference Include="..\hyrax.Core\Hyrax.Core.csproj" />

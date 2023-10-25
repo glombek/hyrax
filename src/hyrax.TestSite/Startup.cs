@@ -1,3 +1,8 @@
+using hyrax.Core.Models.Implement;
+using hyrax.Core.Startup;
+using hyrax.Umbraco;
+using Umbraco.Cms.Web.Common.PublishedModels;
+
 namespace hyrax.TestSite
 {
     public class Startup
@@ -34,6 +39,16 @@ namespace hyrax.TestSite
                 .AddWebsite()
                 .AddComposers()
                 .Build();
+
+            services.AddHyrax((BlogPost blogPost) => new Resource(
+                    new Uri(blogPost.Url()),
+                    blogPost.Name ?? string.Empty,
+                    new Author("Test"),
+                    blogPost.PublishDate,
+                    blogPost.Tags ?? new string[] { },
+                    blogPost.Abstract,
+                    new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+                ));
         }
 
         /// <summary>
@@ -47,6 +62,8 @@ namespace hyrax.TestSite
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseHyrax();
 
             app.UseUmbraco()
                 .WithMiddleware(u =>

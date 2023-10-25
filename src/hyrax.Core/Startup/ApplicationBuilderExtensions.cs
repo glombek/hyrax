@@ -1,10 +1,13 @@
+using hyrax.Core.Services;
+using hyrax.Core.Services.Implement;
+using hyrax.Core.Startup.Implement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace hyrax.Core.Startup
 {
-    public static class ApplicationExtensions
+    public static class ApplicationBuilderExtensions
     {
         public static IHyraxApplicationBuilder UseHyrax(this IApplicationBuilder app)
         {
@@ -35,14 +38,18 @@ namespace hyrax.Core.Startup
                         "/rss",
                         new
                         {
+                            Controller = "Rss",
                             Action = "Get"
                         });
             });
+
+            return new HyraxApplicationBuilder(app);
         }
 
-        public static void AddHyrax(this IServiceCollection services)
+        public static void AddHyrax<THyraxResourceLocatorService>(this IServiceCollection services) where THyraxResourceLocatorService : class, IHyraxResourceLocatorService
         {
-            services.AddScoped<>
+            services.AddScoped<IHyraxResourceLocatorService, THyraxResourceLocatorService>();
+            services.AddScoped<IHyraxActivityService, HyraxActivityService>();
         }
     }
 }
