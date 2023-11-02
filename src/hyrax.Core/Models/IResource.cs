@@ -10,10 +10,11 @@ namespace hyrax.Core.Models
     public interface IResource
     {
         Uri Url { get; }
+        string Id { get; }
         string Name { get; }
         string? Abstract { get; }
         HtmlString? Content { get; }
-        IAuthor Author { get; }
+        IEnumerable<IAuthor> Authors { get; }
         DateTimeOffset PublishDate { get; }
         IEnumerable<string> Tags { get; }
     }

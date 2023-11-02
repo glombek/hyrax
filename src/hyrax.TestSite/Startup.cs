@@ -1,6 +1,7 @@
 using hyrax.Core.Models.Implement;
 using hyrax.Core.Startup;
 using hyrax.Umbraco;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Web.Common.PublishedModels;
 
 namespace hyrax.TestSite
@@ -41,9 +42,10 @@ namespace hyrax.TestSite
                 .Build();
 
             services.AddHyrax((BlogPost blogPost) => new Resource(
-                    new Uri(blogPost.Url()),
+                    new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+                    blogPost.Id.ToString(),
                     blogPost.Name ?? string.Empty,
-                    new Author("Test"),
+                    new Author("Test").AsEnumerableOfOne(),
                     blogPost.PublishDate,
                     blogPost.Tags ?? new string[] { },
                     blogPost.Abstract,
@@ -63,7 +65,6 @@ namespace hyrax.TestSite
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHyrax();
 
             app.UseUmbraco()
                 .WithMiddleware(u =>
@@ -77,6 +78,9 @@ namespace hyrax.TestSite
                     u.UseBackOfficeEndpoints();
                     u.UseWebsiteEndpoints();
                 });
+
+            app.UseHyrax();
+
         }
     }
 }

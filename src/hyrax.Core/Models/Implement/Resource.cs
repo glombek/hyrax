@@ -11,8 +11,9 @@ namespace hyrax.Core.Models.Implement
     {
         public Resource(
             Uri url,
+            string id,
             string name,
-            IAuthor author,
+            IEnumerable<IAuthor> authors,
             DateTimeOffset publishDate,
             IEnumerable<string> tags,
             string? contentAbstract = null,
@@ -20,8 +21,9 @@ namespace hyrax.Core.Models.Implement
             )
         {
             Url = url;
+            Id = id;
             Name = name;
-            Author = author;
+            Authors = authors;
             PublishDate = publishDate;
             Tags = tags;
             Abstract = contentAbstract;
@@ -30,13 +32,15 @@ namespace hyrax.Core.Models.Implement
 
         public Uri Url { get; set; }
 
+        public string Id { get; set; }
+
         public string Name { get; set; }
 
         public string? Abstract { get; set; }
 
         public HtmlString? Content { get; set; }
 
-        public IAuthor Author { get; set; }
+        public IEnumerable<IAuthor> Authors { get; set; }
 
         public DateTimeOffset PublishDate { get; set; }
 
