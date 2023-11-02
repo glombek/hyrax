@@ -14,20 +14,20 @@ namespace hyrax.Umbraco
 {
     public static class ApplicationBuilderExtensions
     {
-        public static IHyraxUmbracoApplicationBuilder UseHyrax(this IUmbracoApplicationBuilder umbracoApplicationBuilder, IApplicationBuilder applicationBuilder)
-        {
-            var appBuilder = applicationBuilder.UseHyrax();
-            return new HyraxUmbracoApplicationBuilder(umbracoApplicationBuilder, appBuilder);
-        }
+        //public static IHyraxUmbracoApplicationBuilder UseHyrax(this IUmbracoApplicationBuilder umbracoApplicationBuilder, IApplicationBuilder applicationBuilder)
+        //{
+        //    var appBuilder = applicationBuilder.UseHyrax();
+        //    return new HyraxUmbracoApplicationBuilder(umbracoApplicationBuilder, appBuilder);
+        //}
 
-        public static IHyraxUmbracoApplicationBuilder UseHyrax(this IUmbracoApplicationBuilder umbracoApplicationBuilder)
-        {
-            if (umbracoApplicationBuilder is UmbracoApplicationBuilder uab)
-            {
-                return uab.UseHyrax(uab.AppBuilder);
-            }
-            throw new ArgumentException("Must be of type Umbraco.Cms.Web.Common.ApplicationBuilder, otherwise use the overload accepting an IApplicationBuilder.", "umbracoApplicationBuilder");
-        }
+        //public static IHyraxUmbracoApplicationBuilder UseHyrax(this IUmbracoApplicationBuilder umbracoApplicationBuilder)
+        //{
+        //    if (umbracoApplicationBuilder is UmbracoApplicationBuilder uab)
+        //    {
+        //        return uab.UseHyrax(uab.AppBuilder);
+        //    }
+        //    throw new ArgumentException("Must be of type Umbraco.Cms.Web.Common.ApplicationBuilder, otherwise use the overload accepting an IApplicationBuilder.", "umbracoApplicationBuilder");
+        //}
 
         public static void AddHyrax<TResource>(this IServiceCollection services, Func<TResource, IResource> resourceMapping) where TResource : class, IPublishedContent
         {
