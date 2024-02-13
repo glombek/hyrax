@@ -2,13 +2,16 @@
     "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json", 
     "AuthorDetails": {
       "Name": "Joe Glombek",
-      "ImageUrl": "https://github.com/glombek.png"
+      "ImageUrl": "https://github.com/glombek.png",
+      "Url": "https://joe.gl/ombek",
+      "SyncContributorsFromRepository": true
     },
-    "Category": "",
+    "Category": "Developer Tools",
+    "AlternateCategory": "Campaign & Marketing",
     "Description": "",
     "LicenseTypes": [ "Free" ],
     "IssueTrackerUrl": "https://github.com/glombek/hyrax/issues",
     "PackageType": "Package",
-    "Tags": [],
-    "Title": "hyrax"
+    "Tags": ["rss", "activitypub", "fediverse", "feed", "social", "mastodon", "atom"],
+    "Title": "hyrax: ActivityPub and RSS for Umbraco"
   }
