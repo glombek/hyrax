@@ -6,6 +6,7 @@ using hyrax.Umbraco;
 using Hyrax.Umbraco.Services;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Web.Common.PublishedModels;
+using UmbracoAuthor = Umbraco.Cms.Web.Common.PublishedModels.Author;
 
 namespace hyrax.TestSite
 {
@@ -44,6 +45,7 @@ namespace hyrax.TestSite
                 .AddComposers()
                 .Build();
 
+            // Hard-coded signle author
             //var hyraxSingleAuthor = new Author("test", "Test");
             //services.AddHyrax((BlogPost blogPost, IHyraxAuthorService authorService) => new Resource(
             //        new Uri(blogPost.Url(mode: UrlMode.Absolute)),
@@ -57,6 +59,7 @@ namespace hyrax.TestSite
             //    ),
             //    hyraxSingleAuthor);
 
+            // Umbraco users as authors
             services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
                 (BlogPost blogPost, IHyraxAuthorService authorService) =>
                 {
@@ -73,6 +76,27 @@ namespace hyrax.TestSite
                             new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
                             );
                 });
+
+            // Umbraco content as authors
+
+            //services.AddHyrax<BlogPost, UmbracoAuthor>(
+            //    (blogPost, authorService) =>
+            //    {
+            //        var author = authorService.Get(blogPost.CreatorId.ToString());
+
+            //        return new Resource(
+            //            new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+            //            blogPost.Id.ToString(),
+            //            blogPost.Name ?? string.Empty,
+            //            author?.AsEnumerableOfOne() ?? new IAuthor[] { },
+            //            blogPost.PublishDate,
+            //            blogPost.Tags ?? new string[] { },
+            //            blogPost.Abstract,
+            //            new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+            //        );
+            //    },
+            //    author => new hyrax.Core.Models.Implement.Author(author.Username, author.Name)
+            //    );
         }
 
         /// <summary>

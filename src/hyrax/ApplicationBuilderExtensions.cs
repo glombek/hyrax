@@ -9,6 +9,7 @@ using hyrax.Core.Models;
 using Hyrax.Umbraco.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using System;
 
 namespace hyrax.Umbraco
 {
@@ -80,6 +81,20 @@ namespace hyrax.Umbraco
             Func<IServiceProvider, IHyraxAuthorService> authorServiceFactory) where TResource : class, IPublishedContent
         {
             services.AddScoped<IHyraxAuthorService>(authorServiceFactory);
+
+            services.AddHyraxResources(resourceMapping);
+        }
+
+        public static void AddHyrax<TResource, TAuthor>(
+            this IServiceCollection services,
+            Func<TResource, IHyraxAuthorService, IResource> resourceMapping,
+            Func<TAuthor, IAuthor> authorMapping) where TResource : class, IPublishedContent where TAuthor : class, IPublishedContent
+        {
+            services.AddScoped<IHyraxAuthorService>((IServiceProvider serviceProvider) => new HyraxUmbracoContentAuthorService<TAuthor>(
+                serviceProvider.GetRequiredService<IUmbracoContextFactory>(),
+                serviceProvider.GetRequiredService<IHyraxAuthorService>(),
+                authorMapping
+                ));
 
             services.AddHyraxResources(resourceMapping);
         }
