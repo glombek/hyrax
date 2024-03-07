@@ -5,13 +5,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using hyrax.Core.Models.Implement;
+using hyrax.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Umbraco.Community.UmbtivityHub.Controllers
 {
     public class WebFingerController : Controller
     {
-        public WebFingerController() {
+        private readonly IHyraxAuthorService _authorService;
+
+        public WebFingerController(IHyraxAuthorService authorService)
+        {
+            _authorService = authorService;
         }
 
         public string Domain
@@ -38,12 +43,25 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
                 return NotFound();
             }
 
+            //TODO: check valid username
+            var author = _authorService.Get(username);
+
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+
+            //Generate a url from the route
+            var url = Url.Action("Actor", "ActivityPub", new { id = author.Username }, Request.Scheme, Domain);
+
+
             var res = Json(
                 new
                 {
                     subject = $"acct:me@{Domain}",
                     aliases = new string[] {
-                        $"https://{Domain}/@me"
+                        //$"https://{Domain}/@{author.Username}"
                     },
                     links = new []
                     {
@@ -51,7 +69,7 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
                         {
                             rel = "self",
                             type = "application/activity+json",
-                            href = $"https://{Domain}/activitypub/actor"
+                            href = url
                         }
                     }
                 }

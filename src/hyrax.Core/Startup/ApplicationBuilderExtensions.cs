@@ -26,10 +26,10 @@ namespace hyrax.Core.Startup
 
                 u.MapControllerRoute(
                         "Hyrax ActivityPub Other",
-                        "/activitypub/{controller}",
+                        "/activitypub/{action}/{id?}",
                         new
                         {
-                            Action = "Get"
+                            Controller = "ActivityPub"
                         });
 
 

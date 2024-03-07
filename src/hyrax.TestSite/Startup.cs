@@ -1,6 +1,9 @@
+using hyrax.Core.Models;
 using hyrax.Core.Models.Implement;
+using hyrax.Core.Services;
 using hyrax.Core.Startup;
 using hyrax.Umbraco;
+using Hyrax.Umbraco.Services;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Web.Common.PublishedModels;
 
@@ -41,16 +44,35 @@ namespace hyrax.TestSite
                 .AddComposers()
                 .Build();
 
-            services.AddHyrax((BlogPost blogPost) => new Resource(
-                    new Uri(blogPost.Url(mode: UrlMode.Absolute)),
-                    blogPost.Id.ToString(),
-                    blogPost.Name ?? string.Empty,
-                    new Author("Test").AsEnumerableOfOne(),
-                    blogPost.PublishDate,
-                    blogPost.Tags ?? new string[] { },
-                    blogPost.Abstract,
-                    new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
-                ));
+            //var hyraxSingleAuthor = new Author("test", "Test");
+            //services.AddHyrax((BlogPost blogPost, IHyraxAuthorService authorService) => new Resource(
+            //        new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+            //        blogPost.Id.ToString(),
+            //        blogPost.Name ?? string.Empty,
+            //        hyraxSingleAuthor.AsEnumerableOfOne(),
+            //        blogPost.PublishDate,
+            //        blogPost.Tags ?? new string[] { },
+            //        blogPost.Abstract,
+            //        new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+            //    ),
+            //    hyraxSingleAuthor);
+
+            services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
+                (BlogPost blogPost, IHyraxAuthorService authorService) =>
+                {
+                    var author = authorService.Get(blogPost.CreatorId.ToString());
+
+                    return new Resource(
+                            new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+                            blogPost.Id.ToString(),
+                            blogPost.Name ?? string.Empty,
+                            author?.AsEnumerableOfOne() ?? new IAuthor[] { },
+                            blogPost.PublishDate,
+                            blogPost.Tags ?? new string[] { },
+                            blogPost.Abstract,
+                            new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+                            );
+                });
         }
 
         /// <summary>

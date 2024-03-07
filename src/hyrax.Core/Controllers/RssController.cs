@@ -15,10 +15,8 @@ namespace hyrax.Core.Controllers
     {
         private readonly IHyraxResourceLocatorService _hyraxResourceLocatorService;
 
-        public RssController(IHyraxResourceLocatorService hyraxResourceLocatorService)
-        {
-            _hyraxResourceLocatorService = hyraxResourceLocatorService;
-        }
+        public RssController(IHyraxResourceLocatorService hyraxResourceLocatorService) => _hyraxResourceLocatorService = hyraxResourceLocatorService;
+
         public ActionResult Get(string? culture)
         {
             var resources = _hyraxResourceLocatorService.GetResources(culture);
