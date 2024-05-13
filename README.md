@@ -2,7 +2,7 @@
 
 # hyrax
 
-**Hy**pertext **R**esource **A**ctivity e**X**posure (that's **ActivityPub** and **RSS** exposure to you and me) for **ASP.NET** websites.
+**Hy**pertext **R**esource **A**ctivity e**X**posure (that's **ActivityPub** and **RSS** exposure to you and me, as well as more [IndieWeb](https://indieweb.org/) tech going forwards) for **ASP.NET** websites.
 
 [![Downloads](https://img.shields.io/nuget/dt/hyrax.Umbraco?color=cc9900)](https://www.nuget.org/packages/hyrax.Umbraco/)
 [![NuGet](https://img.shields.io/nuget/vpre/hyrax.Umbraco?color=0273B3)](https://www.nuget.org/packages/hyrax.Umbraco)
