@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using hyrax.Core.ActivityPub.Models;
 using hyrax.Core.Services;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace hyrax.Core.Controllers
@@ -16,17 +17,19 @@ namespace hyrax.Core.Controllers
     {
         private readonly IHyraxResourceLocatorService _resourceLocatorService;
         private readonly IHyraxAuthorService _authorService;
+        private readonly IHyraxSignatureRepositoryService _signatureRepositoryService;
 
         public ActivityPubController(
             IHyraxResourceLocatorService resourceLocatorService,
-            IHyraxAuthorService authorService
-            )
+            IHyraxAuthorService authorService,
+            IHyraxSignatureRepositoryService signatureRepositoryService)
         {
             _resourceLocatorService = resourceLocatorService;
             _authorService = authorService;
+            _signatureRepositoryService = signatureRepositoryService;
         }
 
-        public ActionResult Actor(string id)
+        public async Task<ActionResult> Actor(string id)
         {
             var author = _authorService.Get(id);
             if (author == null)
@@ -34,12 +37,23 @@ namespace hyrax.Core.Controllers
                 return NotFound();
             }
 
+            var key = await _signatureRepositoryService.GetPublicKeyForAuthor(author);
+
+
+            var actorId = Url.Action("Actor", "ActivityPub", new { id = author.Username }, Request.Scheme, Request.Host.Value) ?? string.Empty;
+
             return Ok(new Actor()
             {
-                Id = Url.Action("Actor", "ActivityPub", new { id = author.Username }, Request.Scheme, Request.Host.Value) ?? string.Empty,
+                Id = actorId,
                 PreferredUsername = author.Username,
                 Inbox = Url.Action("Inbox", "ActivityPub", new { id = author.Username }, Request.Scheme, Request.Host.Value) ?? string.Empty,
-                Outbox = Url.Action("Outbox", "ActivityPub", new { id = author.Username }, Request.Scheme, Request.Host.Value) ?? string.Empty
+                Outbox = Url.Action("Outbox", "ActivityPub", new { id = author.Username }, Request.Scheme, Request.Host.Value) ?? string.Empty,
+                PublicKey = new PublicKey()
+                {
+                    Id = $"{actorId}#main-key",
+                    Owner = actorId,
+                    PublicKeyPem = key
+                }
             });
         }
     }

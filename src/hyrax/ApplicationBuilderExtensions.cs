@@ -38,6 +38,8 @@ namespace hyrax.Umbraco
                     serviceProvider.GetRequiredService<IHyraxAuthorService>(),
                     resourceMapping));
             services.AddScoped<IHyraxActivityService, HyraxActivityService>();
+            services.AddScoped<IHyraxSignatureRepositoryService>((serviceProvider) =>
+                new HyraxFilesystemSignatureRepositoryService("./umbraco/hyrax/"));
         }
 
         /// <summary>
