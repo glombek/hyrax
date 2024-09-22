@@ -26,6 +26,10 @@ TODO *provide any other instructions for someone using your package*
 
 Contributions to this package are most welcome! Please read the [Contributing Guidelines](.github/CONTRIBUTING.md).
 
+
+
+The test site username is `admin@example.com` and the password is `1234567890`.
+
 ## Acknowledgments
 
 [Matt Brailsford](https://umbracocommunity.social/@matt) and [Rachel Breeze](https://geekdom.social/@rachelbreezedev) for brainstorming, researching and pair-programming at [CODECABIN23](https://joe.gl/ombek/blog/codecabin-23/).
