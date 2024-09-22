@@ -27,7 +27,7 @@ namespace Hyrax.Umbraco.Services
             _authorService = authorService;
             _resourceMapping = resourceMapping;
         }
-        public IEnumerable<IResource> GetResources(string? culture = null)
+        public IEnumerable<IResource> GetResources(string? culture = null, IAuthor? author = null)
         {
             using (var contextRef = _umbracoContextFactory.EnsureUmbracoContext())
             {
@@ -37,7 +37,8 @@ namespace Hyrax.Umbraco.Services
                 }
 
                 var publishedContent = contextRef.UmbracoContext.Content.GetAtRoot(culture).DescendantsOrSelf<TResource>();
-                return publishedContent.Select(x => _resourceMapping(x, _authorService));
+                //TODO: Make this _waayyy_ more efficient
+                return publishedContent.Select(x => _resourceMapping(x, _authorService)).Where(x => author == null || x.Authors.Contains(author));
             }
         }
     }

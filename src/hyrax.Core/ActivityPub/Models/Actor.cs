@@ -7,7 +7,7 @@ using hyrax.Core.Controllers;
 
 namespace hyrax.Core.ActivityPub.Models
 {
-    internal class Actor:ActivityPubObject
+    internal class Actor : ActivityPubBase
     {
         public override string Type => "Person";
 

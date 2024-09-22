@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace hyrax.Core.ActivityPub.Models
 {
-    public abstract class ActivityPubObject
+    public abstract class ActivityPubBase
     {
         [JsonPropertyName("@context")]
         public string[] _Context { get; } = new string[] { "https://www.w3.org/ns/activitystreams",
