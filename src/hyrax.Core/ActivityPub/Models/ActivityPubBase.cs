@@ -14,5 +14,13 @@ namespace hyrax.Core.ActivityPub.Models
             "https://w3id.org/security/v1" };
 
         public abstract string Type { get; }
+
+        [JsonExtensionData]
+        public Dictionary<string, object> ExtensionData { get; } = new();
+
+        public void AddProperty(string key, object value)
+        {
+            ExtensionData[key] = value;
+        }
     }
 }

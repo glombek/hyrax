@@ -10,38 +10,45 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace hyrax.Core.Services.Implement
 {
+    //TODO: Create stores other than filesystem
     public class HyraxFilesystemSignatureRepositoryService : IHyraxSignatureRepositoryService
     {
         public HyraxFilesystemSignatureRepositoryService(string folderPath) => FolderPath = folderPath;
 
         public string FolderPath { get; set; }
-        public string PublicKeyPath => Path.Combine(FolderPath, "public.pem");
-        public string PrivateKeyPath => Path.Combine(FolderPath, "private.pem");
+        public string PublicKeyPath => Path.Combine(FolderPath, "{0}_public.pem");
+        public string PrivateKeyPath => Path.Combine(FolderPath, "{0}_private.pem");
 
         public async Task StoreKeyForAuthor(IAuthor author, string publicKey, string privateKey)
         {
-            Directory.CreateDirectory(FolderPath);
-            File.Create(PublicKeyPath).Close();
-            File.Create(PrivateKeyPath).Close();
+            var publicKeyPath = string.Format(PublicKeyPath, author.Username);
+            var privateKeyPath = string.Format(PrivateKeyPath, author.Username);
 
-            await File.WriteAllTextAsync(PublicKeyPath, publicKey);
-            await File.WriteAllTextAsync(PrivateKeyPath, privateKey);
+            Directory.CreateDirectory(FolderPath);
+            File.Create(publicKeyPath).Close();
+            File.Create(privateKeyPath).Close();
+
+            await File.WriteAllTextAsync(publicKeyPath, publicKey);
+            await File.WriteAllTextAsync(privateKeyPath, privateKey);
         }
 
         public async Task<string> GetPublicKeyForAuthor(IAuthor author)
         {
             var crt = RSA.Create();
 
-            if (!File.Exists(PublicKeyPath))
+            var publicKeyPath = string.Format(PublicKeyPath, author.Username);
+
+            if (!File.Exists(publicKeyPath))
             {
-                var publicKey = crt.ExportRSAPublicKeyPem();
-                var privateKey = crt.ExportRSAPrivateKeyPem();
+                var publicKey = crt.ExportSubjectPublicKeyInfoPem();
+                var privateKey = crt.ExportPkcs8PrivateKeyPem();
                 await StoreKeyForAuthor(author, publicKey, privateKey);
                 return publicKey;
             }
-            var pem = await File.ReadAllTextAsync(PublicKeyPath);
+
+            var pem = await File.ReadAllTextAsync(publicKeyPath);
             crt.ImportFromPem(pem);
-            return crt.ExportRSAPublicKeyPem();
+            return crt.ExportSubjectPublicKeyInfoPem();
         }
     }
 }

@@ -8,6 +8,8 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Web.Common.PublishedModels;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+// Make Kestrel listen on the local.notacu.lt host (HTTPS) in addition to existing URLs
+builder.WebHost.UseUrls("https://local.notacu.lt:443", "https://localhost:44358", "http://localhost:26995");
 
 
 
@@ -20,7 +22,7 @@ builder.CreateUmbracoBuilder()
 await builder.Services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
     async (BlogPost blogPost, IHyraxAuthorService authorService) =>
     {
-        var author = await authorService.Get(blogPost.CreatorId.ToString());
+        var author = await authorService.Get(blogPost.CreatorName().ToLower());
 
         return new Resource(
                     new Uri(blogPost.Url(mode: UrlMode.Absolute)),

@@ -75,7 +75,7 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
                 }
                 );
 
-            res.ContentType = "application/activity+json";
+            res.ContentType = "application/jrd+json";
             return res;
         }
     }

@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Examine;
 using hyrax.Core.Models;
+using hyrax.Core.Models.Implement;
 using hyrax.Core.Services;
+using Umbraco.Cms.Core.Media.EmbedProviders;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
+using Umbraco.Cms.Infrastructure.Examine;
 using Umbraco.Cms.Web.Common.UmbracoContext;
 using Umbraco.Extensions;
-using Examine;
-using Umbraco.Cms.Infrastructure.Examine;
 
 namespace Hyrax.Umbraco.Services
 {
@@ -32,6 +34,27 @@ namespace Hyrax.Umbraco.Services
             _resourceMapping = resourceMapping;
             _examineManager = examineManager;
         }
+
+        public async Task<IResource?> GetResource(string id)
+        {
+            using (var contextRef = _umbracoContextFactory.EnsureUmbracoContext())
+            {
+                var contentCache = contextRef.UmbracoContext.Content;
+                if (contentCache == null)
+                {
+                    throw new Exception("Content cache is empty");
+                }
+
+                if (await contentCache.GetByIdAsync(int.Parse(id)) is not TResource content)
+                {
+                    return null;
+                }
+
+                var resource = await _resourceMapping(content, _authorService);
+                return resource;
+            }
+        }
+
         public async Task<IEnumerable<IResource>> GetResources(string? culture = null, IAuthor? author = null)
         {
             var index = _examineManager.TryGetIndex("ExternalIndex", out var externalIndex) ? externalIndex : null;

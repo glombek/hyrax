@@ -9,6 +9,7 @@ namespace hyrax.Core.Services
 {
     public interface IHyraxResourceLocatorService
     {
+        Task<IResource?> GetResource(string id);
         Task<IEnumerable<IResource>> GetResources(string? culture = null, IAuthor? author = null);
     }
 }
