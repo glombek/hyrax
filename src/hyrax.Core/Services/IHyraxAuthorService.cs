@@ -9,7 +9,7 @@ namespace hyrax.Core.Services
 {
     public interface IHyraxAuthorService
     {
-        IEnumerable<IAuthor> Get();
-        IAuthor? Get(string username);
+        Task<IEnumerable<IAuthor>> Get();
+        Task<IAuthor?> Get(string username);
     }
 }

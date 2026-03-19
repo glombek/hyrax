@@ -7,7 +7,6 @@ namespace hyrax.Umbraco
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.ManifestFilters().Append<HyraxManifestFilter>();
         }
     }
 }

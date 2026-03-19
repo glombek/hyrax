@@ -1,0 +1,11 @@
+{
+  "packageName": "hyrax",
+  "version": "0.1.0",
+  "allowPackageTelemetry": true,
+  "javascript": [
+    // "/App_Plugins/hyrax/Scripts/scripts.js"
+  ],
+  "css": [
+    // "/App_Plugins/hyrax/Styles/styles.css"
+  ]
+}

@@ -13,12 +13,12 @@ namespace hyrax.Core.Services.Implement
 
         public HyraxSingleAuthorAuthorService(IAuthor author) => _author = author;
 
-        public IEnumerable<IAuthor> Get()
+        public async Task<IEnumerable<IAuthor>> Get()
         {
             return new[] { _author };
         }
 
-        public IAuthor? Get(string name)
+        public async Task<IAuthor?> Get(string name)
         {
             if (name == _author.Name)
             {

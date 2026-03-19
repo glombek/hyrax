@@ -17,9 +17,9 @@ namespace hyrax.Core.Controllers
 
         public RssController(IHyraxResourceLocatorService hyraxResourceLocatorService) => _hyraxResourceLocatorService = hyraxResourceLocatorService;
 
-        public ActionResult Get(string? culture)
+        public async Task<ActionResult> GetAsync(string? culture)
         {
-            var resources = _hyraxResourceLocatorService.GetResources(culture);
+            var resources = await _hyraxResourceLocatorService.GetResources(culture);
             var feed = new SyndicationFeed
             {
                 //TODO: add publication info

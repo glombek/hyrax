@@ -27,7 +27,7 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
             }
         }
 
-        public ActionResult Get(string resource)
+        public async Task<ActionResult> Get(string resource)
         {
             if(string.IsNullOrEmpty(resource))
             {
@@ -44,7 +44,7 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
             }
 
             //TODO: check valid username
-            var author = _authorService.Get(username);
+            var author = await _authorService.Get(username);
 
             if (author == null)
             {
@@ -59,7 +59,7 @@ namespace Umbraco.Community.UmbtivityHub.Controllers
             var res = Json(
                 new
                 {
-                    subject = $"acct:me@{Domain}",
+                    subject = $"acct:{author.Username}@{Domain}",
                     aliases = new string[] {
                         //$"https://{Domain}/@{author.Username}"
                     },

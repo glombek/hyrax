@@ -16,14 +16,14 @@ namespace hyrax.Core.Services.Implement
             _resourceLocatorService = resourceLocatorService;
         }
 
-        public IEnumerable<IAuthor> Get()
+        public async Task<IEnumerable<IAuthor>> Get()
         {
-            return _resourceLocatorService.GetResources().SelectMany(r => r.Authors).Distinct();
+            return (await _resourceLocatorService.GetResources()).SelectMany(r => r.Authors).Distinct();
         }
 
-        public IAuthor? Get(string name)
+        public async Task<IAuthor?> Get(string name)
         {
-            return Get().FirstOrDefault(a => a.Name == name);
+            return (await Get()).FirstOrDefault(a => a.Name == name);
         }
     }
 }

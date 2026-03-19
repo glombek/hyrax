@@ -10,6 +10,7 @@ using Hyrax.Umbraco.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using System;
+using Examine;
 
 namespace hyrax.Umbraco
 {
@@ -31,12 +32,12 @@ namespace hyrax.Umbraco
         //}
 
         private static void AddHyraxResources<TResource>(this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping) where TResource : class, IPublishedContent
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping) where TResource : class, IPublishedContent
         {
             services.AddScoped<IHyraxResourceLocatorService>((serviceProvider) =>
                 new HyraxUmbracoResourceLocatorService<TResource>(serviceProvider.GetRequiredService<IUmbracoContextFactory>(),
                     serviceProvider.GetRequiredService<IHyraxAuthorService>(),
-                    resourceMapping));
+                    resourceMapping, serviceProvider.GetRequiredService<IExamineManager>()));
             services.AddScoped<IHyraxActivityService, HyraxActivityService>();
             services.AddScoped<IHyraxSignatureRepositoryService>((serviceProvider) =>
                 new HyraxFilesystemSignatureRepositoryService("./umbraco/hyrax/"));
@@ -48,18 +49,18 @@ namespace hyrax.Umbraco
         /// <typeparam name="TResource"></typeparam>
         /// <param name="services"></param>
         /// <param name="resourceMapping"></param>
-        public static void AddHyrax<TResource>(
+        public static async Task AddHyrax<TResource>(
             this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping) where TResource : class, IPublishedContent
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping) where TResource : class, IPublishedContent
         {
             services.AddScoped<IHyraxAuthorService, HyraxAutomaticAuthorService>();
 
             services.AddHyraxResources(resourceMapping);
         }
 
-        public static void AddHyrax<TResource>(
+        public static async Task AddHyrax<TResource>(
             this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping,
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping,
             IAuthor singleAuthor) where TResource : class, IPublishedContent
         {
             services.AddScoped<IHyraxAuthorService>((serviceProvider) =>
@@ -68,18 +69,18 @@ namespace hyrax.Umbraco
             services.AddHyraxResources(resourceMapping);
         }
 
-        public static void AddHyrax<TResource, TAuthorService>(
+        public static async Task AddHyrax<TResource, TAuthorService>(
             this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping) where TResource : class, IPublishedContent where TAuthorService : class, IHyraxAuthorService
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping) where TResource : class, IPublishedContent where TAuthorService : class, IHyraxAuthorService
         {
             services.AddScoped<IHyraxAuthorService, TAuthorService>();
 
             services.AddHyraxResources(resourceMapping);
         }
 
-        public static void AddHyrax<TResource>(
+        public static async Task AddHyrax<TResource>(
             this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping,
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping,
             Func<IServiceProvider, IHyraxAuthorService> authorServiceFactory) where TResource : class, IPublishedContent
         {
             services.AddScoped<IHyraxAuthorService>(authorServiceFactory);
@@ -87,15 +88,15 @@ namespace hyrax.Umbraco
             services.AddHyraxResources(resourceMapping);
         }
 
-        public static void AddHyrax<TResource, TAuthor>(
+        public static async Task AddHyrax<TResource, TAuthor>(
             this IServiceCollection services,
-            Func<TResource, IHyraxAuthorService, IResource> resourceMapping,
+            Func<TResource, IHyraxAuthorService, Task<IResource>> resourceMapping,
             Func<TAuthor, IAuthor> authorMapping) where TResource : class, IPublishedContent where TAuthor : class, IPublishedContent
         {
             services.AddScoped<IHyraxAuthorService>((IServiceProvider serviceProvider) => new HyraxUmbracoContentAuthorService<TAuthor>(
                 serviceProvider.GetRequiredService<IUmbracoContextFactory>(),
-                serviceProvider.GetRequiredService<IHyraxAuthorService>(),
-                authorMapping
+                authorMapping,
+                serviceProvider.GetRequiredService<IExamineManager>()
                 ));
 
             services.AddHyraxResources(resourceMapping);

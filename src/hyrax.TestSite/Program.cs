@@ -1,19 +1,90 @@
-namespace hyrax.TestSite
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-            => CreateHostBuilder(args)
-                .Build()
-                .Run();
+using hyrax.Core.Models;
+using hyrax.Core.Models.Implement;
+using hyrax.Core.Services;
+using hyrax.Core.Startup;
+using hyrax.Umbraco;
+using Hyrax.Umbraco.Services;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Web.Common.PublishedModels;
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureUmbracoDefaults()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStaticWebAssets();
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-}
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+
+
+builder.CreateUmbracoBuilder()
+    .AddBackOffice()
+    .AddWebsite()
+    .AddComposers()
+    .Build();
+
+await builder.Services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
+    async (BlogPost blogPost, IHyraxAuthorService authorService) =>
+    {
+        var author = await authorService.Get(blogPost.CreatorId.ToString());
+
+        return new Resource(
+                    new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+                    blogPost.Id.ToString(),
+                    blogPost.Name ?? string.Empty,
+                    author is null ? new IAuthor[] { } : Enumerable.Repeat(author, 1),
+                    blogPost.PublishDate,
+                    blogPost.Tags ?? new string[] { },
+                    blogPost.Abstract,
+                    new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+                    );
+    });
+
+// Hard-coded signle author
+//var hyraxSingleAuthor = new Author("test", "Test");
+//services.AddHyrax((BlogPost blogPost, IHyraxAuthorService authorService) => new Resource(
+//        new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+//        blogPost.Id.ToString(),
+//        blogPost.Name ?? string.Empty,
+//        hyraxSingleAuthor.AsEnumerableOfOne(),
+//        blogPost.PublishDate,
+//        blogPost.Tags ?? new string[] { },
+//        blogPost.Abstract,
+//        new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+//    ),
+//    hyraxSingleAuthor);
+
+// Umbraco content as authors
+//services.AddHyrax<BlogPost, UmbracoAuthor>(
+//    (blogPost, authorService) =>
+//    {
+//        var author = authorService.Get(blogPost.CreatorId.ToString());
+
+//        return new Resource(
+//            new Uri(blogPost.Url(mode: UrlMode.Absolute)),
+//            blogPost.Id.ToString(),
+//            blogPost.Name ?? string.Empty,
+//            author?.AsEnumerableOfOne() ?? new IAuthor[] { },
+//            blogPost.PublishDate,
+//            blogPost.Tags ?? new string[] { },
+//            blogPost.Abstract,
+//            new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
+//        );
+//    },
+//    author => new hyrax.Core.Models.Implement.Author(author.Username, author.Name)
+//    );
+
+WebApplication app = builder.Build();
+
+await app.BootUmbracoAsync();
+
+
+app.UseUmbraco()
+    .WithMiddleware(u =>
+    {
+        u.UseBackOffice();
+        u.UseWebsite();
+    })
+    .WithEndpoints(u =>
+    {
+        u.UseBackOfficeEndpoints();
+        u.UseWebsiteEndpoints();
+    });
+
+app.UseHyrax();
+
+await app.RunAsync();

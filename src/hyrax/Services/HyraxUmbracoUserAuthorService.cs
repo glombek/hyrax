@@ -37,20 +37,20 @@ namespace Hyrax.Umbraco.Services
             return new Author((user.Name ?? user.Email).ToUrlSegment(_shortStringHelper), user.Name ?? user.Email);
         }
 
-        public IEnumerable<IAuthor> Get()
+        public async Task<IEnumerable<IAuthor>> Get()
         {
             return _umbracoUserService.GetAll(0, int.MaxValue, out _).Select(ConvertToAuthor).WhereNotNull();
         }
 
-        public IAuthor? Get(string username)
+        public async Task<IAuthor?> Get(string username)
         {
             //Cannot use GetByUsername as we're generating our own usernames from the name
             //return ConvertToAuthor(_umbracoUserService.GetByUsername(id));
 
             //ensure username is converted
-            username = username.ToUrlSegment(_shortStringHelper);
+             username = username.ToUrlSegment(_shortStringHelper);
 
-            return Get().FirstOrDefault(u => u.Username == username);
+            return (await Get()).FirstOrDefault(u => u.Username == username);
         }
     }
 }

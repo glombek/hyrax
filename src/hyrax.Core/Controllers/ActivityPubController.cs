@@ -35,7 +35,7 @@ namespace hyrax.Core.Controllers
 
         public async Task<ActionResult> Actor(string id)
         {
-            var author = _authorService.Get(id);
+            var author = await _authorService.Get(id);
             if (author == null)
             {
                 return NotFound();
@@ -63,7 +63,7 @@ namespace hyrax.Core.Controllers
 
         public async Task<ActionResult> Outbox(string id, int page = 1)
         {
-            var author = _authorService.Get(id);
+            var author = await _authorService.Get(id);
             if (author == null)
             {
                 return NotFound();
@@ -72,7 +72,7 @@ namespace hyrax.Core.Controllers
             var actorId = Url.Action("Actor", "ActivityPub", new { id = author.Username }, Request.Scheme,
                 Request.Host.Value) ?? string.Empty;
 
-            var resources = _hyraxResourceLocatorService.GetResources(author: author);
+            var resources = await _hyraxResourceLocatorService.GetResources(author: author);
 
             return Ok(new OrderedCollectionPage()
             {
