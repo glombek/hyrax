@@ -24,13 +24,7 @@ namespace hyrax.Core.Startup
                         });
 
 
-                u.MapControllerRoute(
-                        "Hyrax ActivityPub Other",
-                        "/activitypub/{action}/{id?}",
-                        new
-                        {
-                            Controller = "ActivityPub"
-                        });
+                // ActivityPub routes are mapped when ActivityPub is enabled via WithActivityPub
 
 
                 u.MapControllerRoute(
@@ -46,10 +40,11 @@ namespace hyrax.Core.Startup
             return new HyraxApplicationBuilder(app);
         }
 
-        public static void AddHyrax<THyraxResourceLocatorService>(this IServiceCollection services) where THyraxResourceLocatorService : class, IHyraxResourceLocatorService
+        public static IHyraxBuilder AddHyrax<THyraxResourceLocatorService>(this IServiceCollection services) where THyraxResourceLocatorService : class, IHyraxResourceLocatorService
         {
             services.AddScoped<IHyraxResourceLocatorService, THyraxResourceLocatorService>();
-            services.AddScoped<IHyraxActivityService, HyraxActivityService>();
+            // ActivityPub-specific services should be registered via .WithActivityPub(...) to keep core hyrax agnostic
+            return new HyraxBuilder(services);
         }
     }
 }

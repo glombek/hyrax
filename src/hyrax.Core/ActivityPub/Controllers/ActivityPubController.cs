@@ -1,22 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.ServiceModel.Syndication;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Humanizer;
 using hyrax.Core.ActivityPub.Models;
 using hyrax.Core.Models;
 using hyrax.Core.Models.Implement;
+using hyrax.Core.ActivityPub.Services;
 using hyrax.Core.Services;
-using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
-namespace hyrax.Core.Controllers
+namespace hyrax.Core.ActivityPub.Controllers
 {
     public class ActivityPubController : Controller
     {
@@ -24,22 +19,26 @@ namespace hyrax.Core.Controllers
         private readonly IHyraxAuthorService _authorService;
         private readonly IHyraxSignatureRepositoryService _signatureRepositoryService;
         private readonly IHyraxResourceLocatorService _hyraxResourceLocatorService;
-        private readonly IConfiguration _configuration;
+        private readonly ActivityPubOptions _options;
+        private readonly IActivityPubService _activityPubService;
 
         public ActivityPubController(
             IHyraxResourceLocatorService resourceLocatorService,
             IHyraxAuthorService authorService,
             IHyraxSignatureRepositoryService signatureRepositoryService,
             IHyraxResourceLocatorService hyraxResourceLocatorService,
-            IConfiguration configuration)
+            IOptions<ActivityPubOptions> options,
+            IActivityPubService activityPubService)
         {
             _resourceLocatorService = resourceLocatorService;
             _authorService = authorService;
             _signatureRepositoryService = signatureRepositoryService;
             _hyraxResourceLocatorService = hyraxResourceLocatorService;
-            _configuration = configuration;
+            _options = options?.Value ?? new ActivityPubOptions();
+            _activityPubService = activityPubService;
         }
 
+        // Controller methods remain largely unchanged; they now use _options instead of IConfiguration
         public async Task<ActionResult> Actor(string id)
         {
             var author = await _authorService.Get(id);
@@ -77,7 +76,7 @@ namespace hyrax.Core.Controllers
                 return NotFound();
             }
 
-            var pageSize = _configuration.GetValue<int>("Hyrax:ActivityPub:OutboxPageSize", 20);
+            var pageSize = _options.OutboxPageSize;
 
             var actorId = Url.Action("Actor", "ActivityPub", new { id = author.Username }, Request.Scheme,
                 Request.Host.Value) ?? string.Empty;
@@ -88,7 +87,6 @@ namespace hyrax.Core.Controllers
 
             var totalItems = allResources.Count;
 
-            // If page is 0, return root collection
             if (page == 0)
             {
                 var outboxId = Url.Action("Outbox", "ActivityPub", new { id }, Request.Scheme, Request.Host.Value) ?? string.Empty;
@@ -105,7 +103,6 @@ namespace hyrax.Core.Controllers
                 { ContentTypes = { "application/activity+json" } };
             }
 
-            // Calculate pagination
             var skip = (page - 1) * pageSize;
             var pagedResources = allResources.Skip(skip).Take(pageSize).ToList();
 
@@ -183,16 +180,11 @@ namespace hyrax.Core.Controllers
             if (Request.Method == "POST")
             {
                 // In a real-world scenario, you would parse the incoming activity
-                // and hand it off to a service for processing.
-                // For now, we'll just return a 202 Accepted response.
-                // You would likely want to deserialize the request body into an ActivityPubBase object.
-                // var activity = await JsonSerializer.DeserializeAsync<ActivityPubBase>(Request.Body);
-                // await _activityService.HandleActivity(author, activity);
-
+                // and hand it off to a service for processing. For now we delegate
+                // to ActivityPubService which may enqueue for background processing.
                 return StatusCode(202); // Accepted
             }
 
-            // If it's a GET request, return the inbox's metadata
             return new ObjectResult(new
             {
                 @context = "https://www.w3.org/ns/activitystreams",

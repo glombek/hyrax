@@ -19,7 +19,7 @@ builder.CreateUmbracoBuilder()
     .AddComposers()
     .Build();
 
-await builder.Services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
+builder.Services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
     async (BlogPost blogPost, IHyraxAuthorService authorService) =>
     {
         var author = await authorService.Get(blogPost.CreatorName().ToLower());
@@ -34,7 +34,7 @@ await builder.Services.AddHyrax<BlogPost, HyraxUmbracoUserAuthorService>(
                     blogPost.Abstract,
                     new Microsoft.AspNetCore.Html.HtmlString(blogPost.BodyText?.ToString())
                     );
-    });
+    }).WithActivityPub();
 
 // Hard-coded signle author
 //var hyraxSingleAuthor = new Author("test", "Test");
@@ -87,6 +87,7 @@ app.UseUmbraco()
         u.UseWebsiteEndpoints();
     });
 
-app.UseHyrax();
+app.UseHyrax()
+    .WithActivityPub();
 
 await app.RunAsync();
