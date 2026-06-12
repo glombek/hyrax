@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using Humanizer;
@@ -21,6 +24,8 @@ namespace hyrax.Core.ActivityPub.Controllers
         private readonly IHyraxResourceLocatorService _hyraxResourceLocatorService;
         private readonly ActivityPubOptions _options;
         private readonly IActivityPubService _activityPubService;
+        private readonly IHyraxActivityService _hyraxActivityService;
+        private readonly IOutboundDeliveryService _deliveryService;
 
         public ActivityPubController(
             IHyraxResourceLocatorService resourceLocatorService,
@@ -28,7 +33,9 @@ namespace hyrax.Core.ActivityPub.Controllers
             IHyraxSignatureRepositoryService signatureRepositoryService,
             IHyraxResourceLocatorService hyraxResourceLocatorService,
             IOptions<ActivityPubOptions> options,
-            IActivityPubService activityPubService)
+            IActivityPubService activityPubService,
+            IHyraxActivityService hyraxActivityService,
+            IOutboundDeliveryService deliveryService)
         {
             _resourceLocatorService = resourceLocatorService;
             _authorService = authorService;
@@ -36,6 +43,8 @@ namespace hyrax.Core.ActivityPub.Controllers
             _hyraxResourceLocatorService = hyraxResourceLocatorService;
             _options = options?.Value ?? new ActivityPubOptions();
             _activityPubService = activityPubService;
+            _hyraxActivityService = hyraxActivityService;
+            _deliveryService = deliveryService;
         }
 
         // Controller methods remain largely unchanged; they now use _options instead of IConfiguration
@@ -179,10 +188,26 @@ namespace hyrax.Core.ActivityPub.Controllers
 
             if (Request.Method == "POST")
             {
-                // In a real-world scenario, you would parse the incoming activity
-                // and hand it off to a service for processing. For now we delegate
-                // to ActivityPubService which may enqueue for background processing.
-                return StatusCode(202); // Accepted
+                try
+                {
+                    // Read the raw body for signature verification
+                    var body = await new StreamReader(Request.Body).ReadToEndAsync();
+                    Request.Body.Position = 0;
+
+                    // Parse the incoming activity
+                    var activity = JsonSerializer.Deserialize<JsonElement>(body);
+
+                    // Handle the incoming activity
+                    await _hyraxActivityService.HandleIncoming(author, activity, body);
+
+                    return StatusCode(202); // Accepted - processing asynchronously
+                }
+                catch (Exception ex)
+                {
+                    // Log the error, but still return 202 to be Federation-friendly
+                    // The activity was received, even if we couldn't process it yet
+                    return StatusCode(202);
+                }
             }
 
             return new ObjectResult(new
@@ -197,50 +222,120 @@ namespace hyrax.Core.ActivityPub.Controllers
 
         public async Task<ActionResult> Activity(string authorUsername, string activityId)
         {
-            var res = await _hyraxResourceLocatorService.GetResource(activityId);
-
-            if (res == null)
+            var author = await _authorService.Get(authorUsername);
+            if (author == null)
             {
                 return NotFound();
             }
 
-            var actorId = Url.Action("Actor", "ActivityPub", new { id = authorUsername }, Request.Scheme,
-                Request.Host.Value) ?? string.Empty;
-
-            var activity = new CreateActivity()
+            var activityJson = await _hyraxActivityService.GetActivity(activityId);
+            if (activityJson == null)
             {
-                Id = Url.Action("Activity", "ActivityPub", new { activityId = res.Id }, Request.Scheme, Request.Host.Value) ?? string.Empty,
-                Actor = actorId,
-                Published = res.PublishDate,
-                To = new string[] {
-                    "https://www.w3.org/ns/activitystreams#Public"
-                },
-                Cc = new string[] {
-                    Url.Action("Followers", "ActivityPub", new { id = authorUsername }, Request.Scheme, Request.Host.Value) ?? string.Empty
-                },
-                Object = new NoteObject()
+                // Fall back to the old behavior - look up as a resource
+                var res = await _hyraxResourceLocatorService.GetResource(activityId);
+                if (res == null)
                 {
-                    Id = res.Url,
-                    Sensitive = false,
-                    InReplyTo = null,
+                    return NotFound();
+                }
+
+                var actorId = Url.Action("Actor", "ActivityPub", new { id = authorUsername }, Request.Scheme,
+                    Request.Host.Value) ?? string.Empty;
+
+                var activity = new CreateActivity()
+                {
+                    Id = Url.Action("Activity", "ActivityPub", new { activityId = res.Id }, Request.Scheme, Request.Host.Value) ?? string.Empty,
+                    Actor = actorId,
                     Published = res.PublishDate,
-                    Url = res.Url,
-                    AttributedTo = actorId,
                     To = new string[] {
                         "https://www.w3.org/ns/activitystreams#Public"
                     },
                     Cc = new string[] {
                         Url.Action("Followers", "ActivityPub", new { id = authorUsername }, Request.Scheme, Request.Host.Value) ?? string.Empty
                     },
-                    Content = res.Content ?? HtmlString.Empty,
-                    Tag = res.Tags.Select(tag => new Hashtag()
+                    Object = new NoteObject()
                     {
-                        Name = $"#{tag.Dehumanize()}"
-                    })
-                }
+                        Id = res.Url,
+                        Sensitive = false,
+                        InReplyTo = null,
+                        Published = res.PublishDate,
+                        Url = res.Url,
+                        AttributedTo = actorId,
+                        To = new string[] {
+                            "https://www.w3.org/ns/activitystreams#Public"
+                        },
+                        Cc = new string[] {
+                            Url.Action("Followers", "ActivityPub", new { id = authorUsername }, Request.Scheme, Request.Host.Value) ?? string.Empty
+                        },
+                        Content = res.Content ?? HtmlString.Empty,
+                        Tag = res.Tags.Select(tag => new Hashtag()
+                        {
+                            Name = $"#{tag.Dehumanize()}"
+                        })
+                    }
+                };
+
+                return new ObjectResult(activity) { ContentTypes = { "application/activity+json" } };
+            }
+
+            return Content(activityJson, "application/activity+json");
+        }
+
+        public async Task<ActionResult> Followers(string id, int page = 0)
+        {
+            var author = await _authorService.Get(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            if (_options.DisableFollowerApproval)
+            {
+                // If follower approval is disabled, don't expose the followers list
+                return NotFound();
+            }
+
+            var pageSize = _options.FollowersPageSize;
+            var followersId = Url.Action("Followers", "ActivityPub", new { id }, Request.Scheme, Request.Host.Value) ?? string.Empty;
+
+            if (page == 0)
+            {
+                var followerCount = await _hyraxActivityService.GetFollowerCount(id);
+                var firstPageUrl = Url.Action("Followers", "ActivityPub", new { id, page = 1 }, Request.Scheme, Request.Host.Value) ?? string.Empty;
+
+                return new ObjectResult(new
+                {
+                    @context = "https://www.w3.org/ns/activitystreams",
+                    id = followersId,
+                    type = "OrderedCollection",
+                    totalItems = followerCount,
+                    first = firstPageUrl
+                })
+                { ContentTypes = { "application/activity+json" } };
+            }
+
+            var (followers, followerTotalCount) = await _hyraxActivityService.GetFollowersPage(id, page - 1, pageSize);
+            var pageUrl = Url.Action("Followers", "ActivityPub", new { id, page }, Request.Scheme, Request.Host.Value) ?? string.Empty;
+            var nextPageUrl = (page - 1) * pageSize + pageSize < followerTotalCount
+                ? Url.Action("Followers", "ActivityPub", new { id, page = page + 1 }, Request.Scheme, Request.Host.Value) ?? string.Empty
+                : null;
+            var prevPageUrl = page > 1
+                ? Url.Action("Followers", "ActivityPub", new { id, page = page - 1 }, Request.Scheme, Request.Host.Value) ?? string.Empty
+                : null;
+
+            var items = followers.Select(f => f.ActorUri).ToList();
+
+            var pageObj = new
+            {
+                @context = "https://www.w3.org/ns/activitystreams",
+                id = pageUrl,
+                type = "OrderedCollectionPage",
+                partOf = followersId,
+                orderedItems = items,
+                next = nextPageUrl,
+                prev = prevPageUrl
             };
 
-            return new ObjectResult(activity) { ContentTypes = { "application/activity+json" } };
+            return new ObjectResult(pageObj) { ContentTypes = { "application/activity+json" } };
         }
     }
 }
